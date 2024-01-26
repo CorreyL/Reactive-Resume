@@ -113,6 +113,19 @@ const InsertImageForm = ({ onInsert }: InsertImageProps) => {
   );
 };
 
+const InsertLinkFormSchema = z.object({
+  url: z.string(),
+  displayText: z.string(),
+});
+
+type InsertLinkFormValues = z.infer<typeof InsertLinkFormSchema>;
+
+type InsertLinkProps = {
+  onInsert: (value: InsertLinkFormValues) => void;
+  displayText?: string;
+  previousUrl?: string;
+};
+
 const Toolbar = ({ editor }: { editor: Editor }) => {
   const setLink = useCallback(() => {
     const previousUrl = editor.getAttributes("link").href;
