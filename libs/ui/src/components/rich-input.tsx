@@ -137,7 +137,44 @@ const InsertLinkForm = ({ onInsert, displayText = "", previousUrl = "" }: Insert
     form.reset();
   };
 
-  return null;
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
+        <FormField
+          name="url"
+          control={form.control}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>URL</FormLabel>
+              <FormControl>
+                <Input placeholder="http://..." {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          name="displayText"
+          control={form.control}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Display Text</FormLabel>
+              <FormControl>
+                <Input {...field} />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+
+        <div className="!mt-5 ml-auto max-w-fit">
+          <Button type="submit" variant="secondary" size="sm">
+            Insert Link
+          </Button>
+        </div>
+      </form>
+    </Form>
+  );
 };
 
 const Toolbar = ({ editor }: { editor: Editor }) => {
