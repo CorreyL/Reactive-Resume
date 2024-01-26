@@ -178,25 +178,42 @@ const InsertLinkForm = ({ onInsert, displayText = "", previousUrl = "" }: Insert
 };
 
 const Toolbar = ({ editor }: { editor: Editor }) => {
-  const setLink = useCallback(() => {
-    const previousUrl = editor.getAttributes("link").href;
-    const url = window.prompt("URL", previousUrl);
+  const setLink = useCallback(
+    (url: string, displayText: string) => {
+      /**
+       * @todo Implementation incomplete, need to continue to revise
+       */
+      // empty
+      if (url === "") {
+        editor.chain().focus().extendMarkRange("link").unsetLink().run();
 
-    // cancelled
-    if (url === null) {
-      return;
-    }
+        return;
+      }
+      const { from, to } = editor.view.state.selection;
 
-    // empty
-    if (url === "") {
-      editor.chain().focus().extendMarkRange("link").unsetLink().run();
-
-      return;
-    }
-
-    // update link
-    editor.chain().focus().extendMarkRange("link").setLink({ href: url }).run();
-  }, [editor]);
+      // No text was previously selected, so add new text
+      if (from === to) {
+        editor
+          .chain()
+          .focus()
+          .extendMarkRange("link")
+          .setLink({ href: url })
+          .command(({ tr }) => {
+            tr.insertText(displayText);
+            return true;
+          })
+          .run();
+      } else {
+        editor
+          .chain()
+          .setTextSelection({ from, to })
+          .extendMarkRange("link")
+          .setLink({ href: url })
+          .run();
+      }
+    },
+    [editor],
+  );
 
   return (
     <div className="flex flex-wrap gap-0.5 border p-1">
@@ -265,7 +282,10 @@ const Toolbar = ({ editor }: { editor: Editor }) => {
         </Tooltip>
         <PopoverContent className="w-80">
           <InsertLinkForm
-            onInsert={() => {}}
+            onInsert={(props) => {
+              const { url, displayText } = props;
+              setLink(url, displayText);
+            }}
             displayText={editor.state.doc.textBetween(
               editor.view.state.selection.from,
               editor.view.state.selection.to,
