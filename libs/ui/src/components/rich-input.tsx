@@ -126,6 +126,20 @@ type InsertLinkProps = {
   previousUrl?: string;
 };
 
+const InsertLinkForm = ({ onInsert, displayText = "", previousUrl = "" }: InsertLinkProps) => {
+  const form = useForm<InsertLinkFormValues>({
+    resolver: zodResolver(InsertLinkFormSchema),
+    defaultValues: { url: previousUrl, displayText },
+  });
+
+  const onSubmit = (values: InsertLinkFormValues) => {
+    onInsert(values);
+    form.reset();
+  };
+
+  return null;
+};
+
 const Toolbar = ({ editor }: { editor: Editor }) => {
   const setLink = useCallback(() => {
     const previousUrl = editor.getAttributes("link").href;
