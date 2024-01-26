@@ -255,11 +255,26 @@ const Toolbar = ({ editor }: { editor: Editor }) => {
         </Toggle>
       </Tooltip>
 
-      <Tooltip content="Hyperlink">
-        <Button type="button" size="sm" variant="ghost" className="px-2" onClick={setLink}>
-          <LinkSimple />
-        </Button>
-      </Tooltip>
+      <Popover>
+        <Tooltip content="Hyperlink">
+          <PopoverTrigger asChild>
+            <Button type="button" size="sm" variant="ghost" className="px-2">
+              <LinkSimple />
+            </Button>
+          </PopoverTrigger>
+        </Tooltip>
+        <PopoverContent className="w-80">
+          <InsertLinkForm
+            onInsert={() => {}}
+            displayText={editor.state.doc.textBetween(
+              editor.view.state.selection.from,
+              editor.view.state.selection.to,
+              " ",
+            )}
+            previousUrl={editor.getAttributes("link").href}
+          />
+        </PopoverContent>
+      </Popover>
 
       <Tooltip content="Inline Code">
         <Toggle
