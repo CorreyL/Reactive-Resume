@@ -201,9 +201,11 @@ const Toolbar = ({ editor }: { editor: Editor }) => {
           })
           .run();
       } else {
+        // Text was selected, so replace the selected text with the displayText input
         editor
           .chain()
-          .setTextSelection({ from, to })
+          .insertContentAt({ from, to }, displayText)
+          .setTextSelection({ from, to: displayText.length + 1 })
           .extendMarkRange("link")
           .setLink({ href: url })
           .focus()
