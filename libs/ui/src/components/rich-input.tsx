@@ -180,13 +180,19 @@ const InsertLinkForm = ({ onInsert, displayText = "", previousUrl = "" }: Insert
 const Toolbar = ({ editor }: { editor: Editor }) => {
   const setLink = useCallback(
     (url: string, displayText: string) => {
+      const { from, to } = editor.view.state.selection;
       // empty
       if (url === "") {
-        editor.chain().focus().extendMarkRange("link").unsetLink().run();
+        editor
+          .chain()
+          .focus()
+          .extendMarkRange("link")
+          .unsetLink()
+          .insertContentAt({ from, to }, displayText)
+          .run();
 
         return;
       }
-      const { from, to } = editor.view.state.selection;
 
       // No text was previously selected, so add new text
       if (from === to) {
