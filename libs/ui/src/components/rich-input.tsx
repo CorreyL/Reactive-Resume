@@ -181,6 +181,9 @@ const Toolbar = ({ editor }: { editor: Editor }) => {
   const setLink = useCallback(
     (url: string, displayText: string) => {
       const { from, to } = editor.view.state.selection;
+      /**
+       * @todo Fix bug where a highlight contains both a link, and non-linked text
+       */
       // empty
       if (url === "") {
         editor
