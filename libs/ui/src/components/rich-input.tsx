@@ -113,26 +113,124 @@ const InsertImageForm = ({ onInsert }: InsertImageProps) => {
   );
 };
 
+const InsertLinkFormSchema = z.object({
+  url: z.string(),
+  displayText: z.string(),
+});
+
+type InsertLinkFormValues = z.infer<typeof InsertLinkFormSchema>;
+
+type InsertLinkProps = {
+  onInsert: (value: InsertLinkFormValues) => void;
+  editor: Editor;
+};
+
+const InsertLinkForm = ({ onInsert, editor }: InsertLinkProps) => {
+  const previousUrl = editor.getAttributes("link").href;
+  if (previousUrl) {
+    // If the current selection contains a link, then select the whole text
+    // to ensure the full displayText associated with the link is editable
+    editor.commands.extendMarkRange("link");
+  }
+  const displayText = editor.state.doc.textBetween(
+    editor.view.state.selection.from,
+    editor.view.state.selection.to,
+    " ",
+  );
+  const form = useForm<InsertLinkFormValues>({
+    resolver: zodResolver(InsertLinkFormSchema),
+    // Defaulting to "https://" to save the user from having to type it
+    defaultValues: { url: previousUrl || "https://", displayText },
+  });
+
+  const onSubmit = (values: InsertLinkFormValues) => {
+    onInsert(values);
+    form.reset();
+  };
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
+        <FormField
+          name="url"
+          control={form.control}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>URL</FormLabel>
+              <FormControl>
+                <Input placeholder="http://..." {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          name="displayText"
+          control={form.control}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Display Text</FormLabel>
+              <FormControl>
+                <Input {...field} />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+
+        <div className="!mt-5 ml-auto max-w-fit">
+          <Button type="submit" variant="secondary" size="sm">
+            Insert Link
+          </Button>
+        </div>
+      </form>
+    </Form>
+  );
+};
+
 const Toolbar = ({ editor }: { editor: Editor }) => {
-  const setLink = useCallback(() => {
-    const previousUrl = editor.getAttributes("link").href;
-    const url = window.prompt("URL", previousUrl);
+  const setLink = useCallback(
+    (url: string, displayText: string) => {
+      const { from, to } = editor.view.state.selection;
+      // empty
+      if (url === "") {
+        editor
+          .chain()
+          .focus()
+          .extendMarkRange("link")
+          .unsetLink()
+          .insertContentAt({ from, to }, displayText)
+          .run();
 
-    // cancelled
-    if (url === null) {
-      return;
-    }
+        return;
+      }
 
-    // empty
-    if (url === "") {
-      editor.chain().focus().extendMarkRange("link").unsetLink().run();
-
-      return;
-    }
-
-    // update link
-    editor.chain().focus().extendMarkRange("link").setLink({ href: url }).run();
-  }, [editor]);
+      // No text was previously selected, so add new text
+      if (from === to) {
+        editor
+          .chain()
+          .focus()
+          .extendMarkRange("link")
+          .setLink({ href: url })
+          .command(({ tr }) => {
+            tr.insertText(displayText);
+            return true;
+          })
+          .run();
+      } else {
+        // Text was selected, so replace the selected text with the displayText input
+        editor
+          .chain()
+          .insertContentAt({ from, to }, displayText)
+          .setTextSelection({ from, to: from + displayText.length })
+          .extendMarkRange("link")
+          .setLink({ href: url })
+          .focus()
+          .run();
+      }
+    },
+    [editor],
+  );
 
   return (
     <div className="flex flex-wrap gap-0.5 border p-1">
@@ -191,11 +289,24 @@ const Toolbar = ({ editor }: { editor: Editor }) => {
         </Toggle>
       </Tooltip>
 
-      <Tooltip content="Hyperlink">
-        <Button type="button" size="sm" variant="ghost" className="px-2" onClick={setLink}>
-          <LinkSimple />
-        </Button>
-      </Tooltip>
+      <Popover>
+        <Tooltip content="Hyperlink">
+          <PopoverTrigger asChild>
+            <Button type="button" size="sm" variant="ghost" className="px-2">
+              <LinkSimple />
+            </Button>
+          </PopoverTrigger>
+        </Tooltip>
+        <PopoverContent className="w-80">
+          <InsertLinkForm
+            onInsert={(props) => {
+              const { url, displayText } = props;
+              setLink(url, displayText);
+            }}
+            editor={editor}
+          />
+        </PopoverContent>
+      </Popover>
 
       <Tooltip content="Inline Code">
         <Toggle
