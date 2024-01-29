@@ -192,13 +192,6 @@ const Toolbar = ({ editor }: { editor: Editor }) => {
   const setLink = useCallback(
     (url: string, displayText: string) => {
       const { from, to } = editor.view.state.selection;
-      /**
-       * @todo Fix bug where an existing link that is either partially
-       * highlighted, or the cursor is in the middle of the linked text, only
-       * has the URL populated in the Popover, but not the displayText
-       *
-       * The editor will also need to select this text
-       */
       // empty
       if (url === "") {
         editor
