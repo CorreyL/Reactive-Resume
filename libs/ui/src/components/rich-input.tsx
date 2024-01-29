@@ -122,11 +122,21 @@ type InsertLinkFormValues = z.infer<typeof InsertLinkFormSchema>;
 
 type InsertLinkProps = {
   onInsert: (value: InsertLinkFormValues) => void;
-  displayText?: string;
-  previousUrl?: string;
+  editor: Editor;
 };
 
-const InsertLinkForm = ({ onInsert, displayText = "", previousUrl = "" }: InsertLinkProps) => {
+const InsertLinkForm = ({ onInsert, editor }: InsertLinkProps) => {
+  const previousUrl = editor.getAttributes("link").href;
+  if (previousUrl) {
+    // If the current selection contains a link, then select the whole text
+    // to ensure the full displayText associated with the link is editable
+    editor.commands.extendMarkRange("link");
+  }
+  const displayText = editor.state.doc.textBetween(
+    editor.view.state.selection.from,
+    editor.view.state.selection.to,
+    " ",
+  );
   const form = useForm<InsertLinkFormValues>({
     resolver: zodResolver(InsertLinkFormSchema),
     // Defaulting to "https://" to save the user from having to type it
@@ -300,12 +310,7 @@ const Toolbar = ({ editor }: { editor: Editor }) => {
               const { url, displayText } = props;
               setLink(url, displayText);
             }}
-            displayText={editor.state.doc.textBetween(
-              editor.view.state.selection.from,
-              editor.view.state.selection.to,
-              " ",
-            )}
-            previousUrl={editor.getAttributes("link").href}
+            editor={editor}
           />
         </PopoverContent>
       </Popover>
