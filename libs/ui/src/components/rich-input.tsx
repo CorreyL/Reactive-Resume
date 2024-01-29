@@ -214,7 +214,7 @@ const Toolbar = ({ editor }: { editor: Editor }) => {
         editor
           .chain()
           .insertContentAt({ from, to }, displayText)
-          .setTextSelection({ from, to: displayText.length + 1 })
+          .setTextSelection({ from, to: from + displayText.length })
           .extendMarkRange("link")
           .setLink({ href: url })
           .focus()
