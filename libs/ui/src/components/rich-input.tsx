@@ -129,7 +129,8 @@ type InsertLinkProps = {
 const InsertLinkForm = ({ onInsert, displayText = "", previousUrl = "" }: InsertLinkProps) => {
   const form = useForm<InsertLinkFormValues>({
     resolver: zodResolver(InsertLinkFormSchema),
-    defaultValues: { url: previousUrl, displayText },
+    // Defaulting to "https://" to save the user from having to type it
+    defaultValues: { url: previousUrl || "https://", displayText },
   });
 
   const onSubmit = (values: InsertLinkFormValues) => {
